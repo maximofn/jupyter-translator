@@ -18,7 +18,8 @@ def path_name_ext_from_file(file):
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Jupyter notebook translator')
-    parser.add_argument('-f', '--file', help='The notebook to translate', required=True)
+    # parser.add_argument('-f', '--file', help='The notebook to translate', required=True)
+    parser.add_argument('-f', '--file', help='The notebook to translate', default="2021-02-11-Introducción-a-Python.ipynb")
     parser.add_argument('-t', '--target', help='The target language, can be a list of languajes', default=['EN', 'PT-BR'])
     
     args = parser.parse_args()
@@ -85,11 +86,12 @@ def main():
             # print()
     
     # Save the translated notebooks
-    for i, lang in enumerate(args.target):
-        if lang in target_lang.keys():
-            lang = target_lang[lang]
-        with uj.open_notebook(f"{name}_{lang}{extension}", "w") as f:
-            print(f"Saving {name}_{lang}{extension}")
+    # for i, lang in enumerate(args.target):
+    #     if lang in target_lang.keys():
+    #         lang = target_lang[lang]
+    #     with uj.open_notebook(f"{name}_{lang}{extension}", "w") as f:
+    #         print(f"Saving {name}_{lang}{extension}")
+    uj.dict_to_ipynb(notebook, "new_notebook.ipynb")
 
 if __name__ == '__main__':
     main()
