@@ -4,9 +4,9 @@ import argparse
 import sys
 import os
 from languages import target_lang
-# sys.path.append('../jupyter-to-html')
 import utils_jupyter as uj
 import utils_deepl as ud
+from tqdm import tqdm
 
 
 def path_name_ext_from_file(file):
@@ -18,9 +18,10 @@ def path_name_ext_from_file(file):
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Jupyter notebook translator')
-    # parser.add_argument('-f', '--file', help='The notebook to translate', required=True)
-    parser.add_argument('-f', '--file', help='The notebook to translate', default="2021-02-11-Introducción-a-Python.ipynb")
-    parser.add_argument('-t', '--target', help='The target language, can be a list of languajes', default=['EN', 'PT-BR'])
+    parser.add_argument('-f', '--file', help='The notebook to translate', required=True)
+    # parser.add_argument('-t', '--target', help='The target language, can be a list of languajes', default=['EN'])
+    parser.add_argument('-t', '--target', help='The target language, can be a list of languajes', default=['PT-BR'])
+    # parser.add_argument('-t', '--target', help='The target language, can be a list of languajes', required=True)
     
     args = parser.parse_args()
     if args.file:
@@ -55,6 +56,7 @@ def main():
     _, name, extension, _ = path_name_ext_from_file(args.file)
 
     # Create new dictionary with the translated text
+    print("Creating new dictionary for new languages")
     notebooks_translated = []
     for lang in args.target:
         if lang in target_lang.keys():
@@ -62,36 +64,37 @@ def main():
         notebooks_translated.append(notebook)
 
     # Get cells of the notebook
+    print("Getting cells of the notebook")
     cells = notebook['cells']   # Get only with the cells
 
     # Initialize the translator
+    print("Initializing the translator")
     translator = ud.init_deepl()
 
     # Translate only markdown cells
-    for c, cell in enumerate(cells):
-        if c == 2:
-            break;
+    print("Translating markdown cells")
+    bar = tqdm(cells, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+    total_cells = len(cells)
+    for c, cell in enumerate(bar):
+        # if c == 2:
+        #     break;
         if cell['cell_type'] == 'markdown':
-            # print(f"Cell {c}: {cell['source']}")
-            for i, lang in enumerate(args.target):
+            for l, lang in enumerate(args.target):
                 if lang in target_lang.keys():
                     lang = target_lang[lang]
                 if type(cell['source']) == str:
-                    notebooks_translated[i]['cells'][c]['source'] = ud.translate_text(cell['source'], lang, translator)
+                    notebooks_translated[l]['cells'][c]['source'] = ud.translate_text(cell['source'], lang, translator)
                 elif type(cell['source']) == list:
                     for j, line in enumerate(cell['source']):
-                        pass
-                        # notebooks_translated[i]['cells'][c]['source'][j] = ud.translate_text(line, lang, translator)
-                # print(f"Translated to {lang}: {notebooks_translated[i]['cells'][c]['source']}")
-            # print()
+                        notebooks_translated[l]['cells'][c]['source'][j] = ud.translate_text(line, lang, translator)
+        bar.set_description(f"\tCell {c}/{total_cells}")
+    print(f"End of translation")
     
     # Save the translated notebooks
-    # for i, lang in enumerate(args.target):
-    #     if lang in target_lang.keys():
-    #         lang = target_lang[lang]
-    #     with uj.open_notebook(f"{name}_{lang}{extension}", "w") as f:
-    #         print(f"Saving {name}_{lang}{extension}")
-    uj.dict_to_ipynb(notebook, "new_notebook.ipynb")
+    for l, lang in enumerate(args.target):
+        if lang in target_lang.keys():
+            lang = target_lang[lang]
+        uj.dict_to_ipynb(notebooks_translated[l], f"{name}_{lang}{extension}")
 
 if __name__ == '__main__':
     main()
