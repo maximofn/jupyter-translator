@@ -77,7 +77,7 @@ def main(file, target):
     total_cells = len(cells)
     for c, cell in enumerate(bar):
         # if c == 4:
-        #     break;
+        #     break
         if cell['cell_type'] == 'markdown':
             for l, lang in enumerate(target):
                 if lang in target_lang.keys():
@@ -110,10 +110,15 @@ def main(file, target):
             notebooks_translated[0]['cells'][2]['source'].insert(1, "\n")
 
     # Save the translated notebooks
+    output_paths = []
     for l, lang in enumerate(target):
         if lang in target_lang.keys():
             lang = target_lang[lang]
-        uj.dict_to_ipynb(notebooks_translated[l], f"{path}/notebooks_translated/{name}_{lang}{extension}")
+        output_path = f"{path}/notebooks_translated/{name}_{lang}{extension}"
+        output_paths.append(output_path)
+        uj.dict_to_ipynb(notebooks_translated[l], output_path)
+    
+    return output_paths
 
 if __name__ == '__main__':
     args = parse_arguments()
