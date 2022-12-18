@@ -88,7 +88,7 @@ def main(file, target):
                     for j, line in enumerate(cell['source']):
                         notebooks_translated[l]['cells'][c]['source'][j] = ud.translate_text(line, lang, translator)
         bar.set_description(f"\t\tCell {c}/{total_cells}")
-    print(f"End of translation")
+    print(f"\tEnd of translation")
 
     # Add autimatic translation warning message
     for l, lang in enumerate(target):
