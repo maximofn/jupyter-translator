@@ -24,7 +24,6 @@ def parse_arguments():
     parser.add_argument('-t', '--target', nargs='+', help='The target language, can be a list of languajes', required=True)
     
     args = parser.parse_args()
-    print(args.target, type(args.target))
     if args.file:
         _, name, extension, _ = path_name_ext_from_file(args.file)
         if extension == '.ipynb':
@@ -32,10 +31,10 @@ def parse_arguments():
                 if lang not in target_lang.keys() and lang not in target_lang.values():
                     print(f"Target language {lang} is not supported")
                     sys.exit(1)
-                if lang in target_lang.keys():
-                    print(f"Translate {name}{extension} to {name}_{target_lang[lang]}{extension}")
-                else:
-                    print(f"Translate {name}{extension} to {name}_{lang}{extension}")
+                # if lang in target_lang.keys():
+                    # print(f"Translate {name}{extension} to {name}_{target_lang[lang]}{extension}")
+                # else:
+                    # print(f"Translate {name}{extension} to {name}_{lang}{extension}")
         else:
             print(f"File {args.file} is not a Jupyter notebook")
             sys.exit(1)
@@ -47,7 +46,7 @@ def parse_arguments():
 
 
 
-def main():
+def main(file, target):
     args = parse_arguments()
 
     # Open notebook and get text as a dict
@@ -57,7 +56,7 @@ def main():
     _, name, extension, _ = path_name_ext_from_file(args.file)
 
     # Create new dictionary with the translated text
-    print("Creating new dictionary for new languages")
+    print("\tCreating new dictionary for new languages")
     notebooks_translated = []
     for lang in args.target:
         if lang in target_lang.keys():
@@ -65,15 +64,15 @@ def main():
         notebooks_translated.append(uj.get_notebook_as_dict(args.file))
 
     # Get cells of the notebook
-    print("Getting cells of the notebook")
+    print("\tGetting cells of the notebook")
     cells = notebook['cells']   # Get only with the cells
 
     # Initialize the translator
-    print("Initializing the translator")
+    print("\tInitializing the translator")
     translator = ud.init_deepl()
 
     # Translate only markdown cells
-    print("Translating markdown cells")
+    print(f"\tTranslating {file} to {target}")
     bar = tqdm(cells, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
     total_cells = len(cells)
     for c, cell in enumerate(bar):
@@ -88,7 +87,7 @@ def main():
                 elif type(cell['source']) == list:
                     for j, line in enumerate(cell['source']):
                         notebooks_translated[l]['cells'][c]['source'][j] = ud.translate_text(line, lang, translator)
-        bar.set_description(f"\tCell {c}/{total_cells}")
+        bar.set_description(f"\t\tCell {c}/{total_cells}")
     print(f"End of translation")
 
     # Add autimatic translation warning message
@@ -117,4 +116,5 @@ def main():
         uj.dict_to_ipynb(notebooks_translated[l], f"{name}_{lang}{extension}")
 
 if __name__ == '__main__':
-    main()
+    args = parse_arguments()
+    main(args.file, args.target)
