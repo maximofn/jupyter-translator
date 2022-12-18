@@ -47,21 +47,21 @@ def parse_arguments():
 
 
 def main(file, target):
-    args = parse_arguments()
+    # args = parse_arguments()
 
     # Open notebook and get text as a dict
-    notebook = uj.get_notebook_as_dict(args.file)  # Open the notebook as a dictionary
+    notebook = uj.get_notebook_as_dict(file)  # Open the notebook as a dictionary
 
     # Get name and extension of the notebook
-    path, name, extension, _ = path_name_ext_from_file(args.file)
+    path, name, extension, _ = path_name_ext_from_file(file)
 
     # Create new dictionary with the translated text
     print("\tCreating new dictionary for new languages")
     notebooks_translated = []
-    for lang in args.target:
+    for lang in target:
         if lang in target_lang.keys():
             lang = target_lang[lang]
-        notebooks_translated.append(uj.get_notebook_as_dict(args.file))
+        notebooks_translated.append(uj.get_notebook_as_dict(file))
 
     # Get cells of the notebook
     print("\tGetting cells of the notebook")
@@ -79,7 +79,7 @@ def main(file, target):
         # if c == 4:
         #     break;
         if cell['cell_type'] == 'markdown':
-            for l, lang in enumerate(args.target):
+            for l, lang in enumerate(target):
                 if lang in target_lang.keys():
                     lang = target_lang[lang]
                 if type(cell['source']) == str:
@@ -91,7 +91,7 @@ def main(file, target):
     print(f"End of translation")
 
     # Add autimatic translation warning message
-    for l, lang in enumerate(args.target):
+    for l, lang in enumerate(target):
         if lang in target_lang.keys():
             lang = target_lang[lang]
         if lang == 'EN' or lang == 'EN-GB' or lang == 'EN-US':
@@ -110,10 +110,9 @@ def main(file, target):
             notebooks_translated[0]['cells'][2]['source'].insert(1, "\n")
 
     # Save the translated notebooks
-    for l, lang in enumerate(args.target):
+    for l, lang in enumerate(target):
         if lang in target_lang.keys():
             lang = target_lang[lang]
-        print(f"{path}/{name}_{lang}{extension}")
         uj.dict_to_ipynb(notebooks_translated[l], f"{path}/notebooks_translated/{name}_{lang}{extension}")
 
 if __name__ == '__main__':
