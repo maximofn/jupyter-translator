@@ -53,7 +53,7 @@ def main(file, target):
     notebook = uj.get_notebook_as_dict(args.file)  # Open the notebook as a dictionary
 
     # Get name and extension of the notebook
-    _, name, extension, _ = path_name_ext_from_file(args.file)
+    path, name, extension, _ = path_name_ext_from_file(args.file)
 
     # Create new dictionary with the translated text
     print("\tCreating new dictionary for new languages")
@@ -113,7 +113,8 @@ def main(file, target):
     for l, lang in enumerate(args.target):
         if lang in target_lang.keys():
             lang = target_lang[lang]
-        uj.dict_to_ipynb(notebooks_translated[l], f"{name}_{lang}{extension}")
+        print(f"{path}/{name}_{lang}{extension}")
+        uj.dict_to_ipynb(notebooks_translated[l], f"{path}/notebooks_translated/{name}_{lang}{extension}")
 
 if __name__ == '__main__':
     args = parse_arguments()
