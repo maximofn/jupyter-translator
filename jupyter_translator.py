@@ -83,10 +83,17 @@ def main(file, target):
                 if lang in target_lang.keys():
                     lang = target_lang[lang]
                 if type(cell['source']) == str:
-                    notebooks_translated[l]['cells'][c]['source'] = ud.translate_text(cell['source'], lang, translator)
+                    translated_text = ud.translate_text(cell['source'], lang, translator)
+                    if type(translated_text) != str:
+                        raise Exception(f"Error: {translated_text}")
+                    notebooks_translated[l]['cells'][c]['source'] = translated_text
+                    print(notebooks_translated[l]['cells'][c]['source'])
                 elif type(cell['source']) == list:
                     for j, line in enumerate(cell['source']):
-                        notebooks_translated[l]['cells'][c]['source'][j] = ud.translate_text(line, lang, translator)
+                        translated_text = ud.translate_text(line, lang, translator)
+                        if type(translated_text) != str:
+                            raise Exception(f"Error: {translated_text}")
+                        notebooks_translated[l]['cells'][c]['source'][j] = translated_text
         bar.set_description(f"\t\tCell {c}/{total_cells}")
     print(f"\tEnd of translation")
 
@@ -115,6 +122,7 @@ def main(file, target):
         if lang in target_lang.keys():
             lang = target_lang[lang]
         output_path = f"{path}/notebooks_translated/{name}_{lang}{extension}"
+        print(f"\tSaving translated notebook to {output_path}")
         output_paths.append(output_path)
         uj.dict_to_ipynb(notebooks_translated[l], output_path)
     

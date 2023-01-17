@@ -11,4 +11,9 @@ def translate_text(text, target_lang, translator):
         target_lang = 'EN-US'
     elif target_lang == 'PT':
         target_lang = 'PT-BR'
-    return translator.translate_text(text, target_lang=target_lang).text
+    translate_text = None
+    try:
+        translate_text = translator.translate_text(text, target_lang=target_lang).text
+    except Exception as e:
+        translate_text = e
+    return translate_text
