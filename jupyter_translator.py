@@ -122,6 +122,8 @@ def main(file, target):
         if lang in target_lang.keys():
             lang = target_lang[lang]
         output_path = f"{path}/notebooks_translated/{name}_{lang}{extension}"
+        if output_path[0] == "/":
+            output_path = output_path[1:]
         print(f"\tSaving translated notebook to {output_path}")
         output_paths.append(output_path)
         uj.dict_to_ipynb(notebooks_translated[l], output_path)
