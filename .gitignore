@@ -1,2 +1,7 @@
 auth_key.py
+auth_token.py
+notebooks_translated
+2021-02-11-Introducción-a-Python.ipynb
+2021-04-23-Calculo-matricial-con-Numpy.ipynb
+2021-06-15-Manejo-de-datos-con-Pandas.ipynb
 __pycache__

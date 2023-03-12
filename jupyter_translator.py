@@ -3,9 +3,9 @@
 import argparse
 import sys
 import os
-from languages import target_lang
+from languages import target_lang, source_lang
 import utils_jupyter as uj
-import utils_deepl as ud
+import deepl_class
 from tqdm import tqdm
 
 
@@ -25,16 +25,12 @@ def parse_arguments():
     
     args = parser.parse_args()
     if args.file:
-        _, name, extension, _ = path_name_ext_from_file(args.file)
+        _, _, extension, _ = path_name_ext_from_file(args.file)
         if extension == '.ipynb':
             for lang in args.target:
                 if lang not in target_lang.keys() and lang not in target_lang.values():
                     print(f"Target language {lang} is not supported")
                     sys.exit(1)
-                # if lang in target_lang.keys():
-                    # print(f"Translate {name}{extension} to {name}_{target_lang[lang]}{extension}")
-                # else:
-                    # print(f"Translate {name}{extension} to {name}_{lang}{extension}")
         else:
             print(f"File {args.file} is not a Jupyter notebook")
             sys.exit(1)
@@ -47,8 +43,6 @@ def parse_arguments():
 
 
 def main(file, target):
-    # args = parse_arguments()
-
     # Open notebook and get text as a dict
     notebook = uj.get_notebook_as_dict(file)  # Open the notebook as a dictionary
 
@@ -69,7 +63,7 @@ def main(file, target):
 
     # Initialize the translator
     print("\tInitializing the translator")
-    translator = ud.init_deepl()
+    translator = deepl_class.deepl_translator(source_lang["Spanish"])
 
     # Translate only markdown cells
     print(f"\tTranslating {file} to {target}")
@@ -77,20 +71,20 @@ def main(file, target):
     total_cells = len(cells)
     for c, cell in enumerate(bar):
         # if c == 4:
-        #     break
+            # break
         if cell['cell_type'] == 'markdown':
             for l, lang in enumerate(target):
                 if lang in target_lang.keys():
                     lang = target_lang[lang]
                 if type(cell['source']) == str:
-                    translated_text = ud.translate_text(cell['source'], lang, translator)
+                    translated_text = translator.translate(cell['source'], lang)
                     if type(translated_text) != str:
                         raise Exception(f"Error: {translated_text}")
                     notebooks_translated[l]['cells'][c]['source'] = translated_text
                     print(notebooks_translated[l]['cells'][c]['source'])
                 elif type(cell['source']) == list:
                     for j, line in enumerate(cell['source']):
-                        translated_text = ud.translate_text(line, lang, translator)
+                        translated_text = translator.translate(line, lang)
                         if type(translated_text) != str:
                             raise Exception(f"Error: {translated_text}")
                         notebooks_translated[l]['cells'][c]['source'][j] = translated_text
@@ -111,7 +105,7 @@ def main(file, target):
             notebooks_translated[1]['cells'][2]['source'].insert(1, "\n")
         else:
             warning_string = "Este notebook ha sido traducido automáticamente para que sea accesible por más gente, por favor, si ves alguna errata házmelo saber"
-            warning_string = ud.translate_text(warning_string, lang, translator)
+            warning_string = translator.translate(warning_string, lang)
             warning_string = warning_string + "\n"
             notebooks_translated[0]['cells'][2]['source'].insert(0, warning_string)
             notebooks_translated[0]['cells'][2]['source'].insert(1, "\n")
