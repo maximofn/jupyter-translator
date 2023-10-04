@@ -26,7 +26,7 @@ def parse_arguments():
     args = parser.parse_args()
     if args.file:
         _, _, extension, _ = path_name_ext_from_file(args.file)
-        if extension == '.ipynb':
+        if extension == '.ipynb' or extension == '.md':
             for lang in args.target:
                 if lang not in target_lang.keys() and lang not in target_lang.values():
                     print(f"Target language {lang} is not supported")
