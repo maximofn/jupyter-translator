@@ -108,6 +108,12 @@ def main(file, target):
     # Get cells of the notebook
     print("\tGetting cells of the notebook")
     cells = notebook['cells']   # Get only with the cells
+    translated_cells = []
+    for l, lang in enumerate(target):
+        translated_cells.append(notebooks_translated[l]['cells'])
+    print(f"\tNumber of cells: {len(cells)}")
+    print(f"\tNumber of english translated cells: {len(translated_cells[0])}")
+    print(f"\tNumber of portuguese translated cells: {len(translated_cells[1])}")
 
     # Initialize the translator
     print("\tInitializing the translator")
@@ -149,11 +155,11 @@ def main(file, target):
         if lang == 'EN' or lang == 'EN-GB' or lang == 'EN-US':
             warning_string_en = "This notebook has been automatically translated to make it accessible to more people, please let me know if you see any typos.\n"
             notebooks_translated[0]['cells'].insert(1, notebooks_translated[0]['cells'][1].copy())
-            notebooks_translated[0]['cells'][1]['source'] = warning_string_en
+            notebooks_translated[0]['cells'][1]['source'] = [warning_string_en]
         elif lang == 'PT' or lang == 'PT-BR' or lang == 'PT-PT':
             warning_string_pt = "Este caderno foi traduzido automaticamente para torná-lo acessível a mais pessoas, por favor me avise se você vir algum erro de digitação..\n"
             notebooks_translated[1]['cells'].insert(1, notebooks_translated[1]['cells'][1].copy())
-            notebooks_translated[1]['cells'][1]['source'] = warning_string_pt
+            notebooks_translated[1]['cells'][1]['source'] = [warning_string_pt]
         else:
             warning_string = "Este notebook ha sido traducido automáticamente para que sea accesible por más gente, por favor, si ves alguna errata házmelo saber"
             warning_string = translator.translate(warning_string, lang)
