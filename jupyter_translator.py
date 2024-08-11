@@ -7,6 +7,8 @@ from languages import target_lang, source_lang
 import utils_jupyter as uj
 import deepl_class
 from tqdm import tqdm
+import anthropic
+import pathlib
 
 
 def path_name_ext_from_file(file):
@@ -14,7 +16,6 @@ def path_name_ext_from_file(file):
     name, extension = os.path.splitext(name)
     simplex_name = name[11:].replace("-", " ")
     return path, name, extension, simplex_name
-
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Jupyter notebook translator')
@@ -40,7 +41,54 @@ def parse_arguments():
     
     return parser.parse_args()
 
+def init_claude():
+    claude_api_key = None
+    api_env_file = pathlib.Path('../preparar_notebook/api.env')
 
+    lines = api_env_file.read_text().splitlines()
+    for line in lines:
+        k, v = line.split('=')
+        if 'CLAUDE_API_KEY' in k:
+            claude_api_key = v.replace(' ', '').replace('"', '').replace("'", '')
+    
+    client = anthropic.Anthropic(api_key=claude_api_key)
+    return client
+
+def translate(client, text, lang):
+    english_system_instruction="Eres un traductor experto de español a inglés de markdown. \
+Te voy a pasar fragmentos de markdown y los tienes que traducir al inglés teniendo en cuenta que el texto traducido tiene que seguir siendo markdown.\
+Contesta solo con la traducción, no contestes con nada más"
+    portugesse_system_instruction="Eres un traductor experto de español a portugués de markdown. \
+Te voy a pasar fragmentos de markdown y los tienes que traducir al portugués teniendo en cuenta que el texto traducido tiene que seguir siendo markdown.\
+Contesta solo con la traducción, no contestes con nada más"
+    model = "claude-3-5-sonnet-20240620"
+
+    if 'en' in lang.lower():
+        system_instruction = english_system_instruction
+    elif 'pt' in lang.lower():
+        system_instruction = portugesse_system_instruction
+    else:
+        KeyError(f"Language {lang} not supported")
+
+    message = client.messages.create(
+        model=model,
+        max_tokens=1000,
+        temperature=0,
+        system=system_instruction,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": text
+                    }
+                ]
+            }
+        ]
+    )
+
+    return message.content[0].text
 
 def main(file, target):
     # Open notebook and get text as a dict
@@ -63,6 +111,7 @@ def main(file, target):
 
     # Initialize the translator
     print("\tInitializing the translator")
+    # client = init_claude()
     translator = deepl_class.deepl_translator(source_lang["Spanish"])
 
     # Translate only markdown cells
@@ -77,6 +126,7 @@ def main(file, target):
                 if lang in target_lang.keys():
                     lang = target_lang[lang]
                 if type(cell['source']) == str:
+                    # translated_text = translate(client, cell['source'], lang)
                     translated_text = translator.translate(cell['source'], lang)
                     if type(translated_text) != str:
                         raise Exception(f"Error: {translated_text}")
@@ -84,6 +134,7 @@ def main(file, target):
                     print(notebooks_translated[l]['cells'][c]['source'])
                 elif type(cell['source']) == list:
                     for j, line in enumerate(cell['source']):
+                        # translated_text = translate(client, line, lang)
                         translated_text = translator.translate(line, lang)
                         if type(translated_text) != str:
                             raise Exception(f"Error: {translated_text}")
@@ -96,19 +147,19 @@ def main(file, target):
         if lang in target_lang.keys():
             lang = target_lang[lang]
         if lang == 'EN' or lang == 'EN-GB' or lang == 'EN-US':
-            warning_string = "This notebook has been automatically translated to make it accessible to more people, please let me know if you see any typos.\n"
-            notebooks_translated[0]['cells'][2]['source'].insert(0, warning_string)
-            notebooks_translated[0]['cells'][2]['source'].insert(1, "\n")
+            warning_string_en = "This notebook has been automatically translated to make it accessible to more people, please let me know if you see any typos.\n"
+            notebooks_translated[0]['cells'].insert(1, notebooks_translated[0]['cells'][1].copy())
+            notebooks_translated[0]['cells'][1]['source'] = warning_string_en
         elif lang == 'PT' or lang == 'PT-BR' or lang == 'PT-PT':
-            warning_string = "Este caderno foi traduzido automaticamente para torná-lo acessível a mais pessoas, por favor me avise se você vir algum erro de digitação..\n"
-            notebooks_translated[1]['cells'][2]['source'].insert(0, warning_string)
-            notebooks_translated[1]['cells'][2]['source'].insert(1, "\n")
+            warning_string_pt = "Este caderno foi traduzido automaticamente para torná-lo acessível a mais pessoas, por favor me avise se você vir algum erro de digitação..\n"
+            notebooks_translated[1]['cells'].insert(1, notebooks_translated[1]['cells'][1].copy())
+            notebooks_translated[1]['cells'][1]['source'] = warning_string_pt
         else:
             warning_string = "Este notebook ha sido traducido automáticamente para que sea accesible por más gente, por favor, si ves alguna errata házmelo saber"
             warning_string = translator.translate(warning_string, lang)
             warning_string = warning_string + "\n"
-            notebooks_translated[0]['cells'][2]['source'].insert(0, warning_string)
-            notebooks_translated[0]['cells'][2]['source'].insert(1, "\n")
+            notebooks_translated[0]['cells'].insert(1, notebooks_translated[0]['cells'][1].copy())
+            notebooks_translated[0]['cells'][1]['source'] = warning_string
 
     # Save the translated notebooks
     output_paths = []
