@@ -11,6 +11,9 @@ import anthropic
 import pathlib
 
 
+TRANSLATE = True
+
+
 def path_name_ext_from_file(file):
     path, name = os.path.split(file)
     name, extension = os.path.splitext(name)
@@ -132,18 +135,22 @@ def main(file, target):
                 if lang in target_lang.keys():
                     lang = target_lang[lang]
                 if type(cell['source']) == str:
-                    # translated_text = translate(client, cell['source'], lang)
-                    # translated_text = cell['source']
-                    translated_text = translator.translate(cell['source'], lang)
+                    if TRANSLATE:
+                        translated_text = translator.translate(cell['source'], lang)
+                        # translated_text = translate(client, cell['source'], lang)
+                    else:
+                        translated_text = cell['source']
                     if type(translated_text) != str:
                         raise Exception(f"Error: {translated_text}")
                     notebooks_translated[l]['cells'][c]['source'] = translated_text
                     print(notebooks_translated[l]['cells'][c]['source'])
                 elif type(cell['source']) == list:
                     for j, line in enumerate(cell['source']):
-                        # translated_text = translate(client, line, lang)
-                        # translated_text = line
-                        translated_text = translator.translate(line, lang)
+                        if TRANSLATE:
+                            translated_text = translator.translate(line, lang)
+                            # translated_text = translate(client, line, lang)
+                        else:
+                            translated_text = line
                         if type(translated_text) != str:
                             raise Exception(f"Error: {translated_text}")
                         notebooks_translated[l]['cells'][c]['source'][j] = translated_text
