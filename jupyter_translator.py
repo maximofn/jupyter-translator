@@ -133,6 +133,7 @@ def main(file, target):
                     lang = target_lang[lang]
                 if type(cell['source']) == str:
                     # translated_text = translate(client, cell['source'], lang)
+                    # translated_text = cell['source']
                     translated_text = translator.translate(cell['source'], lang)
                     if type(translated_text) != str:
                         raise Exception(f"Error: {translated_text}")
@@ -141,6 +142,7 @@ def main(file, target):
                 elif type(cell['source']) == list:
                     for j, line in enumerate(cell['source']):
                         # translated_text = translate(client, line, lang)
+                        # translated_text = line
                         translated_text = translator.translate(line, lang)
                         if type(translated_text) != str:
                             raise Exception(f"Error: {translated_text}")
